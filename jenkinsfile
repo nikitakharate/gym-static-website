@@ -17,22 +17,24 @@ pipeline {
     git branch: "${BRANCH}", url: "${REPO_URL}"
    }
   }
-stage('Prepare Deployment Directory') {
+
+  stage('Prepare Deployment Directory') {
    steps {
-    sshagent([node-app-key]) {
+    sshagent([SSH_CREDENTIAL]) {
      sh """
-      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP}'
-        sudo mkdir -p ${REMOTE_PATH}'
+      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "
+        sudo mkdir -p ${REMOTE_PATH}
+      "
      """
     }
    }
   }
 
- stage('Deploy Website') {
+  stage('Deploy Website') {
    steps {
     sshagent([SSH_CREDENTIAL]) {
      sh """
-      scp -o StrictHostKeyChecking=no -r * ${REMOTE_USER}@${SERVER_IP}:${REMOTE_PATH} '
+      scp -o StrictHostKeyChecking=no -r * ${REMOTE_USER}@${SERVER_IP}:${REMOTE_PATH}
      """
     }
    }
@@ -42,10 +44,9 @@ stage('Prepare Deployment Directory') {
    steps {
     sshagent([SSH_CREDENTIAL]) {
      sh """
-      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} '
-        sudo systemctl start nginx
+      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} "
         sudo systemctl restart nginx
-
+      "
      """
     }
    }
