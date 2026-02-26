@@ -23,8 +23,7 @@ stage('Prepare Deployment Directory') {
      sh """
       ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP}'
         sudo mkdir -p ${REMOTE_PATH}
-        sudo chown -R ${REMOTE_USER}:${REMOTE_USER} ${REMOTE_PATH}
-      '
+        sudo chown -R ${REMOTE_USER}:${REMOTE_USER} ${REMOTE_PATH} '
      """
     }
    }
@@ -46,7 +45,7 @@ stage('Prepare Deployment Directory') {
      sh """
       ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} '
         sudo systemctl restart nginx
-      '
+        
      """
     }
    }
