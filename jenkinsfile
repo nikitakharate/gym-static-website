@@ -1,0 +1,64 @@
+pipeline {
+ agent any
+
+ environment {
+  SERVER_IP = '172.31.25.32'
+  SSH_CREDENTIAL = 'node-aap-key'
+  REPO_URL = 'https://github.com/nikitakharate/gym-static-website.git'
+  BRANCH = 'main'
+  REMOTE_USER = 'ubuntu'
+  REMOTE_PATH = '/var/www/html'
+ }
+
+ stages {
+
+  stage('Clone Repository') {
+   steps {
+    git branch: "${BRANCH}", url: "${REPO_URL}"
+   }
+  }
+stage('Prepare Deployment Directory') {
+   steps {
+    sshagent([SSH_CREDENTIAL]) {
+     sh """
+      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP}'
+        sudo mkdir -p ${REMOTE_PATH}
+        sudo chown -R ${REMOTE_USER}:${REMOTE_USER} ${REMOTE_PATH}
+      '
+     """
+    }
+   }
+  }
+
+ stage('Deploy Website') {
+   steps {
+    sshagent([SSH_CREDENTIAL]) {
+     sh """
+      scp -o StrictHostKeyChecking=no -r * ${REMOTE_USER}@${SERVER_IP}:${REMOTE_PATH}
+     """
+    }
+   }
+  }
+
+  stage('Restart Nginx') {
+   steps {
+    sshagent([SSH_CREDENTIAL]) {
+     sh """
+      ssh -o StrictHostKeyChecking=no ${REMOTE_USER}@${SERVER_IP} '
+        sudo systemctl restart nginx
+      '
+     """
+    }
+   }
+  }
+ }
+
+ post {
+  success {
+   echo 'Deployment Successful 🎉'
+  }
+  failure {
+   echo 'Deployment Failed ❌'
+  }
+ }
+}
